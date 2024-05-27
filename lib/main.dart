@@ -44,6 +44,32 @@ class _MyHomePageState extends State<MyHomePage> {
               SizedBox(width: 16),
             ],
           ),
+          const SizedBox(height: 11),
+          const Row(
+            children: [
+              SizedBox(width: 16),
+              Expanded(child: Column(
+                children: [
+                  Center(child: Text("1")),
+                  Center(child: Text("1")),
+                  Center(child: Text("1")),
+                  Center(child: Text("1")),
+                  Center(child: Text("1")),
+                ],
+              )),
+              SizedBox(width: 12),
+              Expanded(child: Column(
+                children: [
+                  Center(child: Text("1")),
+                  Center(child: Text("1")),
+                  Center(child: Text("1")),
+                  Center(child: Text("1")),
+                  Center(child: Text("1")),
+                ],
+              )),
+              SizedBox(width: 16),
+            ],
+          ),
           const Expanded(child: SizedBox()),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -63,6 +89,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     BodyPartButton(
                       bodyPart: BodyPart.torso,
                       selected: defendingBodyPart == BodyPart.torso,
+                      bodyPartSetter: _selectDefendingBodyPart,
+                    ),
+                    const SizedBox(height: 14),
+                    BodyPartButton(
+                      bodyPart: BodyPart.legs,
+                      selected: defendingBodyPart == BodyPart.legs,
                       bodyPartSetter: _selectDefendingBodyPart,
                     ),
                   ],
@@ -85,6 +117,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       selected: attackingBodyPart == BodyPart.torso,
                       bodyPartSetter: _selectAttackingBodyPart,
                     ),
+                    const SizedBox(height: 14),
+                    BodyPartButton(
+                      bodyPart: BodyPart.legs,
+                      selected: attackingBodyPart == BodyPart.legs,
+                      bodyPartSetter: _selectAttackingBodyPart,
+                    ),
                   ],
                 ),
               ),
@@ -96,17 +134,30 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               const SizedBox(width: 16),
               Expanded(
-                child: SizedBox(
-                  height: 40,
-                  child: ColoredBox(
-                    color: const Color.fromRGBO(0, 0, 0, 0.87),
-                    child: Center(
-                      child: Text(
-                        "Go".toUpperCase(),
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16),
+                child: GestureDetector(
+                  onTap: () => {
+                    if (defendingBodyPart != null && attackingBodyPart != null)
+                      {
+                        setState(() {
+                          defendingBodyPart = null;
+                          attackingBodyPart = null;
+                        })
+                      }
+                    else
+                      {print("Выдели, блеать!")}
+                  },
+                  child: SizedBox(
+                    height: 40,
+                    child: ColoredBox(
+                      color: _getGoButtonColor(),
+                      child: Center(
+                        child: Text(
+                          "Go".toUpperCase(),
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16),
+                        ),
                       ),
                     ),
                   ),
@@ -132,6 +183,12 @@ class _MyHomePageState extends State<MyHomePage> {
       attackingBodyPart = value;
     });
   }
+
+  Color _getGoButtonColor() {
+    return (attackingBodyPart == null || defendingBodyPart == null)
+        ? Color.fromRGBO(0, 0, 0, 0.38)
+        : Color.fromRGBO(0, 0, 0, 0.87);
+  }
 }
 
 class BodyPart {
@@ -141,6 +198,7 @@ class BodyPart {
 
   static const head = BodyPart._("Head");
   static const torso = BodyPart._("Torso");
+  static const legs = BodyPart._("Legs");
 
   @override
   String toString() {
@@ -167,10 +225,14 @@ class BodyPartButton extends StatelessWidget {
       child: SizedBox(
         height: 40,
         child: ColoredBox(
-          color:
-              selected ? const Color.fromRGBO(18, 121, 206, 1) : Color.fromRGBO(0, 0, 0, 0.38),
+          color: selected
+              ? const Color.fromRGBO(18, 121, 206, 1)
+              : Color.fromRGBO(0, 0, 0, 0.38),
           child: Center(
-            child: Text(bodyPart.name.toUpperCase()),
+            child: Text(
+              bodyPart.name.toUpperCase(),
+              style: TextStyle(color: selected ? Colors.white : Color.fromRGBO(6, 13, 20, 1)),
+            ),
           ),
         ),
       ),
