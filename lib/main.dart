@@ -144,7 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         })
                       }
                     else
-                      {print("Выдели, блеать!")}
+                      {print("Что-то не выделено")}
                   },
                   child: SizedBox(
                     height: 40,
@@ -226,7 +226,7 @@ class BodyPartButton extends StatelessWidget {
         height: 40,
         child: ColoredBox(
           color: selected
-              ? const Color.fromRGBO(18, 121, 206, 1)
+              ? const Color.fromRGBO(28, 121, 206, 1)
               : Color.fromRGBO(0, 0, 0, 0.38),
           child: Center(
             child: Text(
