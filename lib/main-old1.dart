@@ -1,8 +1,5 @@
 import 'dart:math';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_fight_club/fight_club_colors.dart';
 import 'package:flutter_fight_club/fight_club_icons.dart';
 import 'package:flutter_fight_club/fight_club_images.dart';
@@ -71,9 +68,7 @@ class MyHomePageState extends State<MyHomePage> {
               onTap: _onGoButtonClicked,
               color: _getGoButtonColor(),
             ),
-            SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -100,7 +95,7 @@ class MyHomePageState extends State<MyHomePage> {
 
   Color _getGoButtonColor() {
     if (yourLives == 0 || enemysLives == 0) {
-      return FightClubColors.greyButton;
+      return FightClubColors.blackButton;
     } else if (attackingBodyPart == null || defendingBodyPart == null) {
       return FightClubColors.greyButton;
     } else {
