@@ -1,38 +1,24 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_fight_club/fight_club_colors.dart';
-import 'package:flutter_fight_club/fight_club_icons.dart';
-import 'package:flutter_fight_club/fight_club_images.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_fight_club/fight_result.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-          textTheme:
-              GoogleFonts.pressStart2pTextTheme(Theme.of(context).textTheme)),
-      home: const MyHomePage(),
-    );
-  }
-}
+import '../resources/fight_club_colors.dart';
+import '../resources/fight_club_icons.dart';
+import '../resources/fight_club_images.dart';
+import '../widgets/action_button.dart';
 
 /// MY HOMEPAGE
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class FightPage extends StatefulWidget {
+  const FightPage({super.key});
 
   @override
-  State<MyHomePage> createState() => MyHomePageState();
+  State<FightPage> createState() => FightPageState();
 }
 
 /// HOMEPAGE STATE
-class MyHomePageState extends State<MyHomePage> {
+class FightPageState extends State<FightPage> {
   static const maxLives = 5;
 
   BodyPart? defendingBodyPart;
@@ -58,9 +44,20 @@ class MyHomePageState extends State<MyHomePage> {
               yourLivesCount: yourLives,
               enemysLivesCount: enemysLives,
             ),
-            const Expanded(child: SizedBox()),
-            GameInfoWidget(text: gameInfoText),
-            const Expanded(child: SizedBox()),
+            const SizedBox(height: 30),
+            //GameInfoWidget(text: gameInfoText),
+            Expanded(
+                child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ColoredBox(
+                color: FightClubColors.grayBackground,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: GameInfoWidget(text: gameInfoText),
+                ),
+              ),
+            )),
+            const SizedBox(height: 30),
             ControlsWidget(
               defendingBodyPart: defendingBodyPart,
               attackingBodyPart: attackingBodyPart,
@@ -68,9 +65,8 @@ class MyHomePageState extends State<MyHomePage> {
               selectAttackingBodyPart: _selectAttackingBodyPart,
             ),
             const SizedBox(height: 14),
-            GoButton(
-              text:
-                  yourLives == 0 || enemysLives == 0 ? "Start new game" : "Go",
+            ActionButton(
+              text: yourLives == 0 || enemysLives == 0 ? "Back" : "Go",
               onTap: _onGoButtonClicked,
               color: _getGoButtonColor(),
             ),
@@ -115,11 +111,7 @@ class MyHomePageState extends State<MyHomePage> {
   /// ON GO BUTTON CLICKED
   void _onGoButtonClicked() {
     if (yourLives == 0 || enemysLives == 0) {
-      setState(() {
-        _setGameInfoText();
-        yourLives = maxLives;
-        enemysLives = maxLives;
-      });
+      Navigator.of(context).pop();
     } else if (defendingBodyPart != null && attackingBodyPart != null) {
       setState(() {
         final bool enemyLoseLife = attackingBodyPart != whatEnemyDefends;
@@ -128,7 +120,15 @@ class MyHomePageState extends State<MyHomePage> {
         if (enemyLoseLife) enemysLives -= 1;
         if (youLoseLife) yourLives -= 1;
 
-        _setGameInfoText();
+        final FightResult? fightResult = FightResult.calculateResult(yourLives, enemysLives);
+
+        if (fightResult != null) {
+          SharedPreferences.getInstance().then((sharedPreferences) {
+            sharedPreferences.setString("last_fight_result", fightResult.result);
+          });
+        }
+
+        gameInfoText = _calculateCenterText(youLoseLife, enemyLoseLife);
 
         whatEnemyAttacks = BodyPart.random();
         whatEnemyDefends = BodyPart.random();
@@ -140,48 +140,26 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   /// SET GAME INFO TEXT
-  void _setGameInfoText() {
-    print([
-      attackingBodyPart?.name,
-      defendingBodyPart?.name,
-      whatEnemyDefends?.name,
-      whatEnemyAttacks?.name,
-      yourLives,
-      enemysLives
-    ]);
-    final bool enemyLoseLife = attackingBodyPart != whatEnemyDefends;
-    final bool youLoseLife = defendingBodyPart != whatEnemyAttacks;
-    final bool youBlock = defendingBodyPart == whatEnemyAttacks;
-    final bool enemyBlock = attackingBodyPart == whatEnemyDefends;
-
-    String string1 = "";
-    String string2 = "";
-    String fullString = "";
-
+  String _calculateCenterText(
+      final bool youLoseLife, final bool enemyLoseLife) {
     if (defendingBodyPart == null && attackingBodyPart == null) {
-      fullString = "";
-    } else if (yourLives == 0 || enemysLives == 0) {
-      if (yourLives == 0 && enemysLives == 0) {
-        fullString = "Draw";
-      } else if (yourLives == 0) {
-        fullString = "You lost";
-      } else if (enemysLives == 0) {
-        fullString = "You won";
-      }
+      return "";
+    } else if (yourLives == 0 && enemysLives == 0) {
+      return "Draw";
+    } else if (yourLives == 0) {
+      return "You lost";
+    } else if (enemysLives == 0) {
+      return "You won";
     } else {
-      if (enemyBlock) string1 = "Your attack was blocked.";
-      if (enemyLoseLife) {
-        string1 = "You hit enemy’s ${attackingBodyPart?.name.toString()}.";
-      }
-      if (youBlock) string2 = "Enemy’s attack was blocked.";
-      if (youLoseLife) {
-        string2 = "Enemy hit your ${attackingBodyPart?.name.toString()}.";
-      }
+      final String string1 = enemyLoseLife
+          ? "You hit enemy’s ${attackingBodyPart?.name.toString()}."
+          : "Your attack was blocked.";
+      final String string2 = youLoseLife
+          ? "Enemy hit your ${attackingBodyPart?.name.toString()}."
+          : "Enemy’s attack was blocked.";
 
-      fullString = "$string1\n$string2";
+      return "$string1\n$string2";
     }
-
-    gameInfoText = fullString;
   }
 }
 
@@ -196,23 +174,14 @@ class GameInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: SizedBox(
-          width: double.infinity,
-          height: 160,
-          child: ColoredBox(
-            color: FightClubColors.grayBackground,
-            child: Center(
-                child: Text(
-              text,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 11),
-            )),
-          ),
-        ),
-      ),
+    return ColoredBox(
+      color: FightClubColors.grayBackground,
+      child: Center(
+          child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 11),
+      )),
     );
   }
 }
@@ -236,93 +205,89 @@ class FightersInfo extends StatelessWidget {
       height: 160,
       child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          Stack(
             children: [
-              Expanded(
-                child: SizedBox(
-                  height: 160,
-                  child: ColoredBox(
-                    color: FightClubColors.whiteBackground,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 0, vertical: 0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LivesWidget(
-                              overallLivesCount: maxLivesCount,
-                              currentLivesCount: yourLivesCount),
-                          const SizedBox(width: 16),
-                          Column(
-                            children: [
-                              const SizedBox(height: 16),
-                              const Text(
-                                "You",
-                                style: TextStyle(
-                                    color: FightClubColors.darkGreyText),
-                              ),
-                              const SizedBox(height: 12),
-                              Image.asset(
-                                FightClubImages.youAvatar,
-                                width: 92,
-                                height: 92,
-                              ),
-                            ],
-                          ),
+              const Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ColoredBox(color: FightClubColors.whiteBackground),
+                  ),
+                  Expanded(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                        colors: [
+                          FightClubColors.whiteBackground,
+                          FightClubColors.grayBackground
                         ],
+                      )),
+                    ),
+                  ),
+                  Expanded(
+                    child: ColoredBox(color: FightClubColors.grayBackground),
+                  )
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  LivesWidget(
+                      overallLivesCount: maxLivesCount,
+                      currentLivesCount: yourLivesCount),
+                  Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      const Text(
+                        "You",
+                        style: TextStyle(color: FightClubColors.darkGreyText),
+                      ),
+                      const SizedBox(height: 12),
+                      Image.asset(
+                        FightClubImages.youAvatar,
+                        width: 92,
+                        height: 92,
+                      )
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: FightClubColors.blueButton,
+                      ),
+                      child: Center(
+                        child: Text(
+                          "vs",
+                          style: TextStyle(
+                              color: FightClubColors.whiteText, fontSize: 16),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              Expanded(
-                child: SizedBox(
-                  height: 160,
-                  child: ColoredBox(
-                    color: FightClubColors.grayBackground,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Column(
-                            children: [
-                              const SizedBox(height: 16),
-                              const Text("Enemy",
-                                  style: TextStyle(
-                                      color: FightClubColors.darkGreyText)),
-                              const SizedBox(height: 12),
-                              Image.asset(
-                                FightClubImages.enemyAvatar,
-                                width: 92,
-                                height: 92,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: 16),
-                          LivesWidget(
-                              overallLivesCount: maxLivesCount,
-                              currentLivesCount: enemysLivesCount)
-                        ],
-                      ),
-                    ),
+                  Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      const Text("Enemy",
+                          style:
+                              TextStyle(color: FightClubColors.darkGreyText)),
+                      const SizedBox(height: 12),
+                      Image.asset(
+                        FightClubImages.enemyAvatar,
+                        width: 92,
+                        height: 92,
+                      )
+                    ],
                   ),
-                ),
-              ),
+                  LivesWidget(
+                      overallLivesCount: maxLivesCount,
+                      currentLivesCount: enemysLivesCount)
+                ],
+              )
             ],
-          ),
-          const Center(
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: ColoredBox(
-                color: Color.fromRGBO(77, 200, 57, 1),
-              ),
-            ),
-          ),
+          )
         ],
       ),
     );
@@ -349,7 +314,8 @@ class LivesWidget extends StatelessWidget {
       children: List.generate(overallLivesCount, (index) {
         if (index < currentLivesCount) {
           return Padding(
-            padding: index + 1 == overallLivesCount ? const EdgeInsets.only(bottom: 0) : const EdgeInsets.only(bottom: 4),
+            padding:
+                EdgeInsets.only(bottom: index < overallLivesCount - 1 ? 4 : 0),
             child: Image.asset(
               FightClubIcons.heartFull,
               width: 18,
@@ -358,7 +324,8 @@ class LivesWidget extends StatelessWidget {
           );
         } else {
           return Padding(
-            padding: index + 1 == overallLivesCount ? const EdgeInsets.only(bottom: 0) : const EdgeInsets.only(bottom: 4),
+            padding:
+                EdgeInsets.only(bottom: index < overallLivesCount - 1 ? 4 : 0),
             child: Image.asset(
               FightClubIcons.heartEmpty,
               width: 18,
@@ -367,45 +334,6 @@ class LivesWidget extends StatelessWidget {
           );
         }
       }),
-    );
-  }
-}
-
-/// GO BUTTON
-class GoButton extends StatelessWidget {
-  final VoidCallback onTap;
-  final Color color;
-  final String text;
-
-  const GoButton({
-    super.key,
-    required this.onTap,
-    required this.color,
-    required this.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GestureDetector(
-        onTap: onTap,
-        child: SizedBox(
-          height: 40,
-          child: ColoredBox(
-            color: color,
-            child: Center(
-              child: Text(
-                text.toUpperCase(),
-                style: const TextStyle(
-                    color: FightClubColors.whiteText,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -530,10 +458,13 @@ class BodyPartButton extends StatelessWidget {
       onTap: () => bodyPartSetter(bodyPart),
       child: SizedBox(
         height: 40,
-        child: ColoredBox(
-          color: selected
-              ? FightClubColors.blueButton
-              : FightClubColors.greyButton,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: selected ? FightClubColors.blueButton : Colors.transparent,
+            border: !selected
+                ? Border.all(color: FightClubColors.darkGreyText, width: 2)
+                : null,
+          ),
           child: Center(
             child: Text(
               bodyPart.name.toUpperCase(),
