@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../resources/fight_club_colors.dart';
 
 class StatisticsPage extends StatelessWidget {
-  const StatisticsPage({Key? key}) : super(key: key);
+  const StatisticsPage({super.key});
 
   @override
   Widget build(BuildContext context) {

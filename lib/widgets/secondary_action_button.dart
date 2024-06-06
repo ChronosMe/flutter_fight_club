@@ -15,8 +15,6 @@ class SecondaryActionButton extends StatelessWidget {
       child: Container(
         margin:
         const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        padding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         height: 40,
         decoration: BoxDecoration(
           border:
