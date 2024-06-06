@@ -123,9 +123,7 @@ class FightPageState extends State<FightPage> {
         final FightResult? fightResult = FightResult.calculateResult(yourLives, enemysLives);
 
         if (fightResult != null) {
-          SharedPreferences.getInstance().then((sharedPreferences) {
-            sharedPreferences.setString("last_fight_result", fightResult.result);
-          });
+          _makeStat(fightResult);
         }
 
         gameInfoText = _calculateCenterText(youLoseLife, enemyLoseLife);
@@ -160,6 +158,20 @@ class FightPageState extends State<FightPage> {
 
       return "$string1\n$string2";
     }
+  }
+
+  /// WORK WITH STAT
+  void _makeStat(FightResult fightResult) {
+    SharedPreferences.getInstance().then((sharedPreferences) {
+      sharedPreferences.setString("last_fight_result", fightResult.result);
+
+      String key = "stats_${fightResult.result.toString().toLowerCase()}";
+      int? number = sharedPreferences.getInt(key);
+      number ??= 1;
+      number++;
+      print([key, number]);
+      sharedPreferences.setInt(key, number);
+    });
   }
 }
 

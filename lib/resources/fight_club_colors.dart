@@ -11,4 +11,8 @@ class FightClubColors {
   static const Color whiteText = Color.fromRGBO(255, 255, 255, 0.87);
   static const Color whiteBackground = Color.fromRGBO(255, 255, 255, 1);
   static const Color grayBackground = Color.fromRGBO(197, 209, 234, 1);
+
+  static const Color won = Color.fromRGBO(3, 136, 0, 1);
+  static const Color draw = Color.fromRGBO(28, 121, 206, 1);
+  static const Color lost = Color.fromRGBO(234, 44, 44, 1);
 }

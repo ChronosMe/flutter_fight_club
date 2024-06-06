@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fight_club/fight_result.dart';
 import 'package:flutter_fight_club/pages/fight_page.dart';
+import 'package:flutter_fight_club/pages/statistics_page.dart';
 import 'package:flutter_fight_club/widgets/action_button.dart';
 import 'package:flutter_fight_club/resources/fight_club_colors.dart';
+import 'package:flutter_fight_club/widgets/fight_result_widget.dart';
+import 'package:flutter_fight_club/widgets/secondary_action_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MainPage extends StatelessWidget {
@@ -41,10 +45,29 @@ class _MainPageContent extends StatelessWidget {
                   if (!snapshot.hasData || snapshot.data == null) {
                     return const SizedBox();
                   }
-                  return Center(child: Text(snapshot.data!));
+                  return Column(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: const Text("Last fight result", style: TextStyle(
+                          fontSize: 14,
+                          color: FightClubColors.darkGreyText
+                        ),),
+                      ),
+                      FightResultWidget(fightResult: snapshot.data,)
+                    ],
+                  );
                 },
               ),
               const Expanded(child: SizedBox()),
+              SecondaryActionButton(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (context) => const StatisticsPage()),
+                    );
+                  },
+                  text: "Statistics"),
               ActionButton(
                   onTap: () {
                     Navigator.of(context).push(
