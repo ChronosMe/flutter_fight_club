@@ -17,7 +17,7 @@ class SecondaryActionButton extends StatelessWidget {
         const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         padding:
         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        height: 44,
+        height: 40,
         decoration: BoxDecoration(
           border:
           Border.all(color: FightClubColors.darkGreyText, width: 2),
